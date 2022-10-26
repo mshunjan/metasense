@@ -1,4 +1,4 @@
-process FILTER_BRACKEN_OUT {
+process BRACKEN_FILTER {
     tag "$bracken_report"
     label 'process_single'
 
@@ -24,7 +24,7 @@ process FILTER_BRACKEN_OUT {
     def in_taxa = include_taxa ? "--include ${include_taxa.join(' ')}" : ''
     def args = task.ext.args ?: "${ex_taxa} ${in_taxa}"
     def prefix = task.ext.prefix ?: "${meta.id}"
-    filtered_bracken_report = "${prefix}_filtered_bracken.tsv"
+    filtered_bracken_report = "${prefix}_filtered.tsv"
     def VERSION = '1.2'
     """
     filter_bracken.out.py -i '${bracken_report}' \\

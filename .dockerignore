@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# Allow these in context
+!/docker
+
+# Ignore unnecessary files inside allowed directories
+# This should go after the allowed directories
+**/*~
+**/*.*

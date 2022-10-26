@@ -8,16 +8,15 @@
 
 **mshunjan/metasense** is a bioinformatics best-practice analysis pipeline for clinical mNGS based pathogen diagnostics.
 
-The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. 
+The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible.
 
-## Pipeline summary 
+## Pipeline summary
 
 1. Taxonomic classification ([`Kraken2`](https://ccb.jhu.edu/software/kraken2/))
-2. Species relative abundance determination  ([`Bracken`](https://ccb.jhu.edu/software/bracken/))
+2. Species relative abundance determination ([`Bracken`](https://ccb.jhu.edu/software/bracken/))
 3. Human filtered abundance re-estimation
 4. Generate interactive abundance plots ([`Plotly`](https://plotly.com/))
 5. Aggregate pipeline data into report ([`MultiQC`](http://multiqc.info/))
-
 
 ## Quick Start
 

@@ -15,5 +15,6 @@ process UNPACK_DATABASE {
     """
     mkdir kraken_db
     tar xzvf "${database}" -C kraken_db
+    
     """
 }
