@@ -22,9 +22,6 @@ process SEQTK_SAMPLE {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     if (meta.single_end) {
-        if (!(args ==~ /.*-s[0-9]+.*/)) {
-            args += " -s100"
-        }
         """
         seqtk \\
             sample \\
