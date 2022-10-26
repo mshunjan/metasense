@@ -9,14 +9,16 @@ def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 // Validate input parameters
 WorkflowMetasense.initialise(params, log)
 
-// TODO nf-core: Add all file path parameters for the pipeline to the list below
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.fasta ]
+def checkPathParamList = [ params.input, params.multiqc_config, params.kraken_db, params.metadata ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
-if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+if (params.input) { ch_samplesheet = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+if (params.kraken_db) { } else { exit 1, 'Kraken database is required!' }
 
+// Optional parameters
+if (params.metadata) {ch_metadata = file(params.metadata)} else {ch_metadata = 'NO_FILE'}
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     CONFIG FILES
@@ -38,6 +40,9 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
+include { UNPACK_DATABASE } from '../modules/local/unpack_database'
+include { BRACKEN_FILTER } from '../modules/local/bracken/filter/main'
+include { BRACKEN_PLOT } from '../modules/local/bracken/plot/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,10 +53,13 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC                      } from '../modules/nf-core/fastqc/main'
-include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
-include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-
+include { FASTQC                        } from '../modules/nf-core/fastqc/main'
+include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
+include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
+include { KRAKEN2_KRAKEN2               } from '../modules/nf-core/kraken2/kraken2/main'
+include { BRACKEN_BRACKEN               } from '../modules/nf-core/bracken/bracken/main'
+include { BRACKEN_COMBINEBRACKENOUTPUTS } from '../modules/nf-core/bracken/combinebrackenoutputs/main'
+include { SEQTK_SAMPLE                  } from '../modules/nf-core/seqtk/sample/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -69,18 +77,106 @@ workflow METASENSE {
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
     INPUT_CHECK (
-        ch_input
+        ch_samplesheet
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+    if (params.subsample){ 
+        ch_subsample_frac = params.subsample
+
+        SEQTK_SAMPLE (
+            INPUT_CHECK.out.reads,
+            ch_subsample_frac
+        )
+        ch_reads = SEQTK_SAMPLE.out.reads
+        
+        }
+    else {
+        ch_reads = INPUT_CHECK.out.reads
+    }
 
     //
     // MODULE: Run FastQC
     //
     FASTQC (
-        INPUT_CHECK.out.reads
+        ch_reads
     )
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    
+    //
+    // MODULE: Run Kraken2
+    //
+    
+    save_output_fastqs = false
+    save_reads_assignment = false
 
+    if (file(params.kraken_db).isDirectory()) {
+        ch_kraken_db = file(params.kraken_db) 
+    }
+    else {
+        file_url = file(params.kraken_db)
+        UNPACK_DATABASE(
+            file_url
+        )
+        ch_kraken_db = UNPACK_DATABASE.out.db
+    }
+
+    KRAKEN2_KRAKEN2 (
+        ch_reads,
+        ch_kraken_db,
+        save_output_fastqs,
+        save_reads_assignment
+    )
+    ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions.first())
+
+    //
+    // MODULE: Run Bracken
+    //
+
+    BRACKEN_BRACKEN (
+        KRAKEN2_KRAKEN2.out.report,
+        ch_kraken_db
+    )
+
+    ch_versions = ch_versions.mix(BRACKEN_BRACKEN.out.versions.first())
+
+    // 
+    // MODULE: Filter Bracken
+    // 
+
+    // excluding human taxa from abundance measurement
+    exclude_taxa = [9606]
+    include_taxa = false
+
+    BRACKEN_FILTER (
+        BRACKEN_BRACKEN.out.reports,
+        exclude_taxa,
+        include_taxa
+    )
+
+    ch_versions = ch_versions.mix(BRACKEN_FILTER.out.versions.first())
+
+    // 
+    // MODULE: Combine Bracken Outputs
+    // 
+
+    ch_filtered_bracken_files = BRACKEN_FILTER.out.reports.collect{it[1]}.ifEmpty([])
+
+    BRACKEN_COMBINEBRACKENOUTPUTS (
+        ch_filtered_bracken_files
+    )
+
+    ch_versions = ch_versions.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.versions)
+
+    //
+    // Module: Plot bracken data 
+    // 
+    BRACKEN_PLOT (
+        BRACKEN_COMBINEBRACKENOUTPUTS.out.txt
+    )
+    ch_versions = ch_versions.mix(BRACKEN_PLOT.out.versions)
+
+
+    // Dump softwares
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
     )
@@ -95,10 +191,12 @@ workflow METASENSE {
     ch_methods_description = Channel.value(methods_description)
 
     ch_multiqc_files = Channel.empty()
-    ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
+    // ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+    // ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.txt.collect())
+    ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_PLOT.out.graph.collect())
 
     MULTIQC (
         ch_multiqc_files.collect(),
