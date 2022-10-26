@@ -14,12 +14,11 @@ def checkPathParamList = [ params.input, params.multiqc_config, params.kraken_db
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
-if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+if (params.input) { ch_samplesheet = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 if (params.kraken_db) { } else { exit 1, 'Kraken database is required!' }
 
 // Optional parameters
-if (params.metadata) {ch_metadata = file(params.metadata)}
-else {ch_metadata = 'NO_FILE'}
+if (params.metadata) {ch_metadata = file(params.metadata)} else {ch_metadata = 'NO_FILE'}
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     CONFIG FILES
@@ -60,7 +59,7 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpso
 include { KRAKEN2_KRAKEN2               } from '../modules/nf-core/kraken2/kraken2/main'
 include { BRACKEN_BRACKEN               } from '../modules/nf-core/bracken/bracken/main'
 include { BRACKEN_COMBINEBRACKENOUTPUTS } from '../modules/nf-core/bracken/combinebrackenoutputs/main'
-
+include { SEQTK_SAMPLE                  } from '../modules/nf-core/seqtk/sample/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -78,15 +77,28 @@ workflow METASENSE {
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
     INPUT_CHECK (
-        ch_input
+        ch_samplesheet
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+    if (params.subsample){ 
+        ch_subsample_frac = params.subsample
+
+        SEQTK_SAMPLE (
+            INPUT_CHECK.out.reads,
+            ch_subsample_frac
+        )
+        ch_reads = SEQTK_SAMPLE.out.reads
+        
+        }
+    else {
+        ch_reads = INPUT_CHECK.out.reads
+    }
 
     //
     // MODULE: Run FastQC
     //
     FASTQC (
-        INPUT_CHECK.out.reads
+        ch_reads
     )
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
     
@@ -109,7 +121,7 @@ workflow METASENSE {
     }
 
     KRAKEN2_KRAKEN2 (
-        INPUT_CHECK.out.reads,
+        ch_reads,
         ch_kraken_db,
         save_output_fastqs,
         save_reads_assignment

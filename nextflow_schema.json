@@ -28,7 +28,8 @@
                 "kraken_db": {
                     "type": "string",
                     "default": "None",
-                    "fa_icon": "fas fa-database"
+                    "fa_icon": "fas fa-database",
+                    "description": "Path to Kraken2 db"
                 },
                 "outdir": {
                     "type": "string",
@@ -36,10 +37,17 @@
                     "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
                     "fa_icon": "fas fa-folder-open"
                 },
+                "subsample": {
+                    "type": "number",
+                    "default": 1,
+                    "fa_icon": "fas fa-hashtag",
+                    "description": "A fraction or whole number representing reads to be subsampled"
+                },
                 "metadata": {
                     "type": "string",
-                    "default": null,
-                    "fa_icon": "fas fa-tag"
+                    "default": "None",
+                    "fa_icon": "fas fa-tag",
+                    "description": "Metadata for bracken plot"
                 },
                 "email": {
                     "type": "string",
