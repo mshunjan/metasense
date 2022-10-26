@@ -32,7 +32,7 @@ process BRACKEN_PLOT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        visualize: ${VERSION}
+        plot_bracken: ${VERSION}
 
     END_VERSIONS
     """

@@ -2,6 +2,10 @@ process UNPACK_DATABASE {
     tag "$database"
     label "process_single"
 
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'mshunjan/bracken-plot':
+        'mshunjan/bracken-plot' }"
+
     input:
     path (database)
 
