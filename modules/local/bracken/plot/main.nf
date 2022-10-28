@@ -3,8 +3,8 @@ process BRACKEN_PLOT {
     label 'process_single'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'mshunjan/bracken-plot':
-        'mshunjan/bracken-plot' }"
+        'mshunjan/bracken-plot:latest':
+        'mshunjan/bracken-plot:latest' }"
 
     input:
     path(combined_bracken_report) 

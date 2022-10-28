@@ -24,7 +24,7 @@ process BRACKEN_FILTER {
     def in_taxa = include_taxa ? "--include ${include_taxa.join(' ')}" : ''
     def args = task.ext.args ?: "${ex_taxa} ${in_taxa}"
     def prefix = task.ext.prefix ?: "${meta.id}"
-    filtered_bracken_report = "${prefix}_filtered.tsv"
+    filtered_bracken_report = "${prefix}.filtered.tsv"
     def VERSION = '1.2'
     """
     filter_bracken.out.py -i '${bracken_report}' \\
