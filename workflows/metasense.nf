@@ -14,7 +14,6 @@ def checkPathParamList = [ params.input, params.multiqc_config, params.kraken_db
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
-if (params.input) { ch_samplesheet = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 if (params.kraken_db) { } else { exit 1, 'Kraken database is required!' }
 
 // Optional parameters
@@ -40,6 +39,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
+include { SAMPLESHEET_GENERATE } from '../modules/local/samplesheet_generate'
 include { UNPACK_DATABASE } from '../modules/local/unpack_database'
 include { BRACKEN_FILTER } from '../modules/local/bracken/filter/main'
 include { BRACKEN_PLOT } from '../modules/local/bracken/plot/main'
@@ -76,6 +76,18 @@ workflow METASENSE {
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
+    if (file(params.input).isDirectory()) { 
+        ch_dir = file(params.input)
+        SAMPLESHEET_GENERATE (
+            ch_dir
+        )
+        ch_samplesheet = SAMPLESHEET_GENERATE.out.csv
+        ch_versions = ch_versions.mix(SAMPLESHEET_GENERATE.out.versions)
+        }
+    else {
+        ch_samplesheet = file(params.input) 
+    }
+
     INPUT_CHECK (
         ch_samplesheet
     )
@@ -159,7 +171,7 @@ workflow METASENSE {
     // MODULE: Combine Bracken Outputs
     // 
 
-    ch_filtered_bracken_files = BRACKEN_FILTER.out.reports.collect{it[1]}.ifEmpty([])
+    ch_filtered_bracken_files = BRACKEN_FILTER.out.reports.collect{it[1]}
 
     BRACKEN_COMBINEBRACKENOUTPUTS (
         ch_filtered_bracken_files

@@ -158,9 +158,10 @@ def sniff_format(handle):
     peek = read_head(handle)
     handle.seek(0)
     sniffer = csv.Sniffer()
-    if not sniffer.has_header(peek):
-        logger.critical("The given sample sheet does not appear to contain a header.")
-        sys.exit(1)
+    # heuristic prone to false positives so was removed
+    # if not sniffer.has_header(peek):
+    #     logger.critical("The given sample sheet does not appear to contain a header.")
+    #     sys.exit(1)
     dialect = sniffer.sniff(peek)
     return dialect
 
