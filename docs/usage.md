@@ -13,7 +13,7 @@ Before the pipeline can analyze your data, it needs information about the sample
 You can create a samplesheet with information about the samples you would like to analyse before running the pipeline. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below. Then, you can use the input parameter to specify its location.
 
 ```bash
---input '[path to samplesheet file]'
+--input <path/to/samplesheet/file>
 ```
 
 ### Directory
@@ -21,7 +21,7 @@ You can create a samplesheet with information about the samples you would like t
 We have automated the above step, so you can simply provide a directory, and the pipeline will automatically create that samplesheet for you, describing the sample names based on the filenames in the given directory.
 
 ```bash
---input '[path/to/files]'
+--input <path/to/files>
 
 ```
 
@@ -81,27 +81,16 @@ Note that this could also work with s3 URLs. Similarily for the kraken database,
 
 ## Running the pipeline
 
-The typical commands for running the pipeline are as follows:
-
-#### 1. Minimal setup
+A typical command for running this pipeline would be as follows, where `PATH` can be remote files (for the input flag, a samplesheet with remote urls), or local files/directories.
 
 ```bash
-nextflow run mshunjan/metasense --input path/to/files --kraken_db path/to/remote/db --outdir <OUTDIR> -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
-
+nextflow run mshunjan/metasense --input <PATH> --kraken_db <PATH> --outdir <OUTDIR> -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
 ```
 
-#### 2. Custom setup
+We also recommend adding the following flags to your command to control your resource usage. Note that x can be any integer, y can be of `(K|M|G|T)B (ex. GB)` and z can be any of `(s|m|h|day)`
 
 ```bash
-nextflow run mshunjan/metasense --input path/to/samplesheet --kraken_db path/to/db --outdir <OUTDIR> -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
-```
-
-#### 3. Recommended setup
-
-While the previous 2 setups are valid, and can certainly be recommended, your computational resources may be limited. We recommend adding the following flags to your command to control this. Note that x can be any integer, y can be of `(K|M|G|T)B (ex. GB)` and z can be any of `(s|m|h|day)`
-
-```bash
---max_cpus '[x]' --max_memory '[x.y]' --max_time '[x.z]'
+--max_cpus <x> --max_memory <x.y> --max_time <x.z>
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.

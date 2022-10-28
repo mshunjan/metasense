@@ -42,6 +42,7 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 include { SAMPLESHEET_GENERATE } from '../modules/local/samplesheet_generate'
 include { UNPACK_DATABASE } from '../modules/local/unpack_database'
 include { BRACKEN_FILTER } from '../modules/local/bracken/filter/main'
+include { BRACKEN_COMBINEBRACKENOUTPUTS } from '../modules/local/bracken/combinebrackenoutputs/main'
 include { BRACKEN_PLOT } from '../modules/local/bracken/plot/main'
 
 /*
@@ -58,7 +59,6 @@ include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { KRAKEN2_KRAKEN2               } from '../modules/nf-core/kraken2/kraken2/main'
 include { BRACKEN_BRACKEN               } from '../modules/nf-core/bracken/bracken/main'
-include { BRACKEN_COMBINEBRACKENOUTPUTS } from '../modules/nf-core/bracken/combinebrackenoutputs/main'
 include { SEQTK_SAMPLE                  } from '../modules/nf-core/seqtk/sample/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -183,7 +183,7 @@ workflow METASENSE {
     // Module: Plot bracken data 
     // 
     BRACKEN_PLOT (
-        BRACKEN_COMBINEBRACKENOUTPUTS.out.txt
+        BRACKEN_COMBINEBRACKENOUTPUTS.out.result
     )
     ch_versions = ch_versions.mix(BRACKEN_PLOT.out.versions)
 
@@ -207,7 +207,7 @@ workflow METASENSE {
     // ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.txt.collect())
+    ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect())
     ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_PLOT.out.graph.collect())
 
     MULTIQC (

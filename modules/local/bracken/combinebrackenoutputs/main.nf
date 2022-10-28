@@ -1,16 +1,15 @@
 process BRACKEN_COMBINEBRACKENOUTPUTS {
     label 'process_low'
 
-    conda (params.enable_conda ? "bioconda::bracken=2.7" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bracken:2.7--py39hc16433a_0':
-        'quay.io/biocontainers/bracken:2.7--py39hc16433a_0' }"
+        'mshunjan/bracken-plot:latest':
+        'mshunjan/bracken-plot:latest' }"
 
     input:
     path input
 
     output:
-    path "*.txt"       , emit: txt
+    path "*.tsv"       , emit: result
     path "versions.yml", emit: versions
 
     when:
@@ -18,7 +17,7 @@ process BRACKEN_COMBINEBRACKENOUTPUTS {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "bracken_combined.txt"
+    def prefix = task.ext.prefix ?: "bracken_combined.tsv"
     // WARN: Version information not provided by tool on CLI.
     // Please update version string below when bumping container versions.
     def VERSION = '2.7'
