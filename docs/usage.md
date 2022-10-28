@@ -1,13 +1,14 @@
 # mshunjan/metasense: Usage
 
-> While this document attempts to highlight the most important parts of this pipeline and how to use them, it is not comprehensive on  the many optional parameters. Please check the pipeline schema using `nextflow run mshunjan/metasense --help` for further details.
+> While this document attempts to highlight the most important parts of this pipeline and how to use them, it is not comprehensive on the many optional parameters. Please check the pipeline schema using `nextflow run mshunjan/metasense --help` for further details.
 
 ## Introduction
 
 ## Inputs
+
 Before the pipeline can analyze your data, it needs information about the samples to be analyze. We support the following options for providing that data.
 
-### Samplesheet 
+### Samplesheet
 
 You can create a samplesheet with information about the samples you would like to analyse before running the pipeline. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below. Then, you can use the input parameter to specify its location.
 
@@ -20,7 +21,7 @@ You can create a samplesheet with information about the samples you would like t
 We have automated the above step, so you can simply provide a directory, and the pipeline will automatically create that samplesheet for you, describing the sample names based on the filenames in the given directory.
 
 ```bash
---input '[path/to/files]' 
+--input '[path/to/files]'
 
 ```
 
@@ -61,15 +62,19 @@ TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
 ### Remote files
+
 The pipeline can work easily with remote files for all input parameters. For the `--input` flag, we recommend creating a samplesheet following this example:
+
 ```console
 sample,fastq_1,fastq_2
 SAMPLE1_PE,https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/illumina/amplicon/sample1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/illumina/amplicon/sample1_R2.fastq.gz
 SAMPLE2_PE,https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/illumina/amplicon/sample2_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/illumina/amplicon/sample2_R2.fastq.gz
 SAMPLE3_SE,https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/illumina/amplicon/sample1_R1.fastq.gz,
 SAMPLE3_SE,https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/illumina/amplicon/sample2_R1.fastq.gz,
-``` 
+```
+
 Note that this could also work with s3 URLs. Similarily for the kraken database, you can provide a remote located database, such as a tar.gz archive and the pipeline will automatically handle that for you. The following is an example:
+
 ```bash
 --kraken_db https://genome-idx.s3.amazonaws.com/kraken/k2_viral_20220908.tar.gz
 ```
@@ -79,19 +84,25 @@ Note that this could also work with s3 URLs. Similarily for the kraken database,
 The typical commands for running the pipeline are as follows:
 
 #### 1. Minimal setup
-  ```bash
-  nextflow run mshunjan/metasense --input path/to/files --kraken_db path/to/remote/db --outdir <OUTDIR> -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
 
-  ```
+```bash
+nextflow run mshunjan/metasense --input path/to/files --kraken_db path/to/remote/db --outdir <OUTDIR> -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
+
+```
+
 #### 2. Custom setup
-  ```bash
-  nextflow run mshunjan/metasense --input path/to/samplesheet --kraken_db path/to/db --outdir <OUTDIR> -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
-  ```
+
+```bash
+nextflow run mshunjan/metasense --input path/to/samplesheet --kraken_db path/to/db --outdir <OUTDIR> -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
+```
+
 #### 3. Recommended setup
+
 While the previous 2 setups are valid, and can certainly be recommended, your computational resources may be limited. We recommend adding the following flags to your command to control this. Note that x can be any integer, y can be of `(K|M|G|T)B (ex. GB)` and z can be any of `(s|m|h|day)`
-  ```bash
-  --max_cpus '[x]' --max_memory '[x.y]' --max_time '[x.z]' 
-  ```
+
+```bash
+--max_cpus '[x]' --max_memory '[x.y]' --max_time '[x.z]'
+```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
 

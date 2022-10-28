@@ -19,6 +19,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 5. Aggregate pipeline data into report ([`MultiQC`](http://multiqc.info/))
 
 ## Quick Start
+
 > Note: See the [usage docs](./docs/usage.md) for details on using this pipeline.
 
 1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation) (`>=21.10.3`)

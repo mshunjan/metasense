@@ -54,7 +54,7 @@ def main():
         sheet.append(record)
 
     with open(args.out_path, "w") as f:
-        writer=csv.DictWriter(f, fieldnames=sheet_headers)
+        writer = csv.DictWriter(f, fieldnames=sheet_headers)
         writer.writeheader()
         writer.writerows(sheet)
 
