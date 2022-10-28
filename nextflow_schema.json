@@ -20,15 +20,15 @@
                     "format": "path",
                     "mimetype": "text/csv",
                     "schema": "assets/schema_input.json",
-                    "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
+                    "description": "Path to input files or comma-separated file containing information about the samples in the experiment.",
+                    "help_text": "This pipeline will automatically create a samplesheet for a given directory of fastq.gz files. Alternatively, you can create your own file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "kraken_db": {
                     "type": "string",
-                    "default": "None",
                     "fa_icon": "fas fa-database",
-                    "description": "Path to Kraken2 db"
+                    "description": "Path to local or remote Kraken2 db",
+                    "help_text": "If using a remote kraken2 db, please ensure it is in *.tar.gz format. Local dbs can either be a directory or a compressed db. For high-performance, a ram-disk db is recommended."
                 },
                 "outdir": {
                     "type": "string",
@@ -38,13 +38,11 @@
                 },
                 "subsample": {
                     "type": "number",
-                    "default": 1,
                     "fa_icon": "fas fa-hashtag",
                     "description": "A fraction or whole number representing reads to be subsampled"
                 },
                 "metadata": {
                     "type": "string",
-                    "default": "None",
                     "fa_icon": "fas fa-tag",
                     "description": "Metadata for bracken plot"
                 },
@@ -60,7 +58,8 @@
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
                 }
-            }
+            },
+            "help_text": ""
         },
         "institutional_config_options": {
             "title": "Institutional config options",
