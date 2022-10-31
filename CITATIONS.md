@@ -10,7 +10,7 @@
 
 ## Pipeline tools
 
-- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+- [FastP](https://github.com/OpenGene/fastp)
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 
