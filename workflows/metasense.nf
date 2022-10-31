@@ -54,7 +54,7 @@ include { BRACKEN_PLOT } from '../modules/local/bracken/plot/main'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC                        } from '../modules/nf-core/fastqc/main'
+include { FASTP                         } from '../modules/nf-core/fastp/main'
 include { MULTIQC                       } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { KRAKEN2_KRAKEN2               } from '../modules/nf-core/kraken2/kraken2/main'
@@ -107,19 +107,25 @@ workflow METASENSE {
     }
 
     //
-    // MODULE: Run FastQC
+    // MODULE: Run QC
     //
-    FASTQC (
-        ch_reads
-    )
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    if (params.qc) {
+        adapter_fasta = []
+        save_trimmed_fail = false
+        save_merged = false
+        FASTP (
+            ch_reads,
+            adapter_fasta,
+            save_trimmed_fail,
+            save_merged
+        )
+        ch_reads = FASTP.out.reads
+        ch_versions = ch_versions.mix(FASTP.out.versions.first()) 
+    }
     
     //
     // MODULE: Run Kraken2
     //
-    
-    save_output_fastqs = false
-    save_reads_assignment = false
 
     if (file(params.kraken_db).isDirectory()) {
         ch_kraken_db = file(params.kraken_db) 
@@ -132,6 +138,9 @@ workflow METASENSE {
         ch_kraken_db = UNPACK_DATABASE.out.db
     }
 
+    save_output_fastqs = false
+    save_reads_assignment = false
+  
     KRAKEN2_KRAKEN2 (
         ch_reads,
         ch_kraken_db,
@@ -206,9 +215,13 @@ workflow METASENSE {
     // ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
     // ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect())
     ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_PLOT.out.graph.collect())
+
+    if (params.qc) {
+        ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
+        // ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+    }
 
     MULTIQC (
         ch_multiqc_files.collect(),
