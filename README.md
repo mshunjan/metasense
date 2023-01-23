@@ -6,7 +6,7 @@
 
 ## Introduction
 
-**mshunjan/metasense** is a bioinformatics best-practice analysis pipeline for clinical mNGS based pathogen diagnostics.
+**mshunjan/metasense** is a bioinformatics best-practice analysis pipeline for taxonomic profiling of mNGS datasets.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible.
 
