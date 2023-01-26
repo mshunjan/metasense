@@ -1,0 +1,8 @@
+order: 
+  report.ipynb: 1
+  metadata.ipynb: 2
+
+options:
+  exclude_input: True
+  exclude_output_prompt: True
+  exclude_input_prompt: True

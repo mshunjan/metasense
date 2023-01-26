@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "tool"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "1.5.1"
+plotly = "5.10.0"
+nbconvert = "7.2.9"
+numpy = "1.24.1"
+nbformat = "5.7.3"
+Jinja2 = "3.1.2"
+papermill = "2.4.0"
+itables = "1.4.5"
+notebook = "6.5.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

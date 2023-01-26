@@ -24,10 +24,9 @@ if (params.metadata) {ch_metadata = file(params.metadata)} else {ch_metadata = '
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-ch_multiqc_config          = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.multiqc_config, checkIfExists: true ) : Channel.empty()
-ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
-ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+ch_jpreport_nbs = Channel.fromPath("$projectDir/assets/notebooks", checkIfExists: true)
+ch_jpreport_config = Channel.fromPath("$projectDir/assets/jupyter_reports_config.yml", checkIfExists: true)
+ch_jpreport_template = params.jpreport_template ? Channel.fromPath( params.jpreport_template, checkIfExists: true ) : Channel.empty()
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,7 +42,7 @@ include { SAMPLESHEET_GENERATE } from '../modules/local/samplesheet_generate'
 include { UNPACK_DATABASE } from '../modules/local/unpack_database'
 include { BRACKEN_FILTER } from '../modules/local/bracken/filter/main'
 include { BRACKEN_COMBINEBRACKENOUTPUTS } from '../modules/local/bracken/combinebrackenoutputs/main'
-include { BRACKEN_PLOT } from '../modules/local/bracken/plot/main'
+include { JUPYTER_REPORTS } from '../modules/local/jupyter-reports/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,8 +65,7 @@ include { SEQTK_SAMPLE                  } from '../modules/nf-core/seqtk/sample/
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Info required for completion email and summary
-def multiqc_report = []
+def jpreports = []
 
 workflow METASENSE {
 
@@ -188,15 +186,6 @@ workflow METASENSE {
 
     ch_versions = ch_versions.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.versions)
 
-    //
-    // Module: Plot bracken data 
-    // 
-    BRACKEN_PLOT (
-        BRACKEN_COMBINEBRACKENOUTPUTS.out.result
-    )
-    ch_versions = ch_versions.mix(BRACKEN_PLOT.out.versions)
-
-
     // Dump softwares
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
@@ -211,26 +200,26 @@ workflow METASENSE {
     methods_description    = WorkflowMetasense.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
     ch_methods_description = Channel.value(methods_description)
 
-    ch_multiqc_files = Channel.empty()
-    // ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    // ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
-    ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_PLOT.out.graph.collect())
+    ch_jpreports_files = Channel.empty()
+    ch_jpreports_files = ch_jpreports_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+    ch_jpreports_files = ch_jpreports_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
+    ch_jpreports_files = ch_jpreports_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect())
+
 
     if (params.qc) {
-        ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
-        // ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+        ch_jpreports_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
     }
+    
+    parameters = [brac_file:"bracken_combined.tsv", sv_file:"software_versions.yml"]
 
-    MULTIQC (
-        ch_multiqc_files.collect(),
-        ch_multiqc_config.collect().ifEmpty([]),
-        ch_multiqc_custom_config.collect().ifEmpty([]),
-        ch_multiqc_logo.collect().ifEmpty([])
+    JUPYTER_REPORTS (
+        ch_jpreports_files.collect(),
+        ch_jpreport_nbs.collect().ifEmpty([]),
+        parameters,
+        ch_jpreport_config.collect().ifEmpty([]),
+        ch_jpreport_template.collect().ifEmpty([]) 
     )
-    multiqc_report = MULTIQC.out.report.toList()
-    ch_versions    = ch_versions.mix(MULTIQC.out.versions)
+
 }
 
 /*

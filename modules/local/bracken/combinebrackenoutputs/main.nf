@@ -2,8 +2,8 @@ process BRACKEN_COMBINEBRACKENOUTPUTS {
     label 'process_low'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'mshunjan/bracken-plot:latest':
-        'mshunjan/bracken-plot:latest' }"
+        'mshunjan/jupyter-reports:latest':
+        'mshunjan/jupyter-reports:latest' }"
 
     input:
     path input
