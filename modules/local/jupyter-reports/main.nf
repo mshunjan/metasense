@@ -6,11 +6,10 @@ process JUPYTER_REPORTS {
         'mshunjan/jupyter-reports:latest' }"
 
     input:
-    path  input_files, stageAs: "?/*"
-    path(nbs)
-    path(parameters) 
-    path(config)
-    path(template)
+        path nbs
+        path config
+        path template
+        val parameters
 
     output:
     path "report.html"    , emit: report
@@ -19,6 +18,11 @@ process JUPYTER_REPORTS {
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
-    template 'reports.py'
+    def template = template ? "-t ${template}" : ''
+    def config = config ? "-c ${config}" : ''
+    def args = task.ext.args ?: "${template} ${config}"
+
+    """
+    reports.py -i ${nbs} ${args}
+    """
 }

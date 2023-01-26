@@ -10,7 +10,7 @@ def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 WorkflowMetasense.initialise(params, log)
 
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.kraken_db, params.metadata ]
+def checkPathParamList = [ params.input, params.kraken_db, params.metadata ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
@@ -66,6 +66,8 @@ include { SEQTK_SAMPLE                  } from '../modules/nf-core/seqtk/sample/
 */
 
 def jpreports = []
+
+import nextflow.io.ValueObject
 
 workflow METASENSE {
 
@@ -197,27 +199,20 @@ workflow METASENSE {
     workflow_summary    = WorkflowMetasense.paramsSummaryMultiqc(workflow, summary_params)
     ch_workflow_summary = Channel.value(workflow_summary)
 
-    methods_description    = WorkflowMetasense.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
-    ch_methods_description = Channel.value(methods_description)
-
-    ch_jpreports_files = Channel.empty()
-    ch_jpreports_files = ch_jpreports_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_jpreports_files = ch_jpreports_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
-    ch_jpreports_files = ch_jpreports_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect())
-
-
-    if (params.qc) {
-        ch_jpreports_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
-    }
+    ch_jpreports_parameters = [:].withDefault {null}
+    ch_brac_file = BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect()
+    ch_sv_file = CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect()
+    ch_jpreports_parameters.putAll(['brac_file': ch_brac_file,'sv_file':ch_sv_file])    
     
-    parameters = [brac_file:"bracken_combined.tsv", sv_file:"software_versions.yml"]
+    if (params.qc) {
+        ch_jpreports_parameters = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
+    }
 
-    JUPYTER_REPORTS (
-        ch_jpreports_files.collect(),
+    JUPYTER_REPORTS(
         ch_jpreport_nbs.collect().ifEmpty([]),
-        parameters,
         ch_jpreport_config.collect().ifEmpty([]),
-        ch_jpreport_template.collect().ifEmpty([]) 
+        ch_jpreport_template.collect().ifEmpty([]),
+        ch_jpreports_parameters
     )
 
 }

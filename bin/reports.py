@@ -1,14 +1,21 @@
 #!/usr/bin/env python
 
-"""Generates reports from jupyter notebooks."""
+"""Provide functions to generate jupyter-reports."""
 
-import os, sys
+import argparse, os, sys
 import nbformat as nbf
 from nbconvert import HTMLExporter
 from jinja2 import DictLoader
 import papermill as pm
 import yaml
 from pathlib import Path
+
+class ParseKwargs(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, dict())
+        for value in values:
+            key, value = value.split("=")
+            getattr(namespace, self.dest)[key] = value
 
 def get_paths(dir, filepattern, order_dict=None):
     p = Path(dir)
@@ -59,54 +66,73 @@ def book_combiner(paths):
 
 def book_generator(inp, order=None):    
     if os.path.isdir(inp):
-
-        sys.stdout.write("Parsing notebooks directory")
         paths = get_paths(inp, '*.ipynb', order)
         working_nb = book_combiner(paths)
     else: 
-        sys.stdout.write("Parsing file")
         working_nb = nbf.read(inp, as_version=4)
-    
+
     return working_nb
 
 def main():
-    report_name = "Report"
+    report_name = "report"
     prefix = "./"
     config = None
     order = None
+    options = None
     output_nb = None
-    parameters = {}
+    parameters = []
     template = 'lab'
     inp = None
 
-    if "$nbs":
-        inp = "$nbs"
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-i", 
+        "--input", 
+        help="Single or directory of Jupyter Notebooks")
+
+    parser.add_argument(
+        "-p",
+        "--parameters",
+        nargs="*",
+        action=ParseKwargs,
+        help="Book parameters to pass at runtime",
+    )
+    parser.add_argument("-t", "--template", help="Report template")
+    parser.add_argument("-c", "--config", help="Yaml configuration file")
+    parser.add_argument("-o", "--output", help="Output directory")
+
+    args = parser.parse_args()
+
+    if args.input:
+        inp = args.input
     else:
-        sys.exit(1,"Missing required input field")
+        sys.exit(1)
     
-    if "$config":
-        with open("$config", 'r') as f:
+    if args.config:
+        with open(args.config, 'r') as f:
             config = yaml.safe_load(f)
-        order = config['order']
-    if "$report_name":
-        report_name = "$report_name"
-    if "$output":
-        if not os.path.exists("$output"):
-            os.mkdir("$output")
-        prefix = "$output"
+        order = config.get('order') if config.get('order') else order
+        options = config.get('options') if config.get('options') else options
+        report_name = config.get('report_name') if config.get('report_name') else report_name
+
+    if args.output:
+        if not os.path.exists(args.output):
+            os.mkdir(args.output)
+        prefix = args.output
         if prefix[-1] != '/':
             prefix = prefix + '/'
         output_nb = prefix + report_name + ".ipynb"
-    if "$parameters":
-        parameters = "$parameters"
-    if "$template":
-        template = "$template"
+    if args.parameters:
+        parameters = args.parameters
+    if args.template:
+        template = args.template
 
     book = book_generator(inp, order=order)
     if parameters:
-        cell_combiner(book, lambda x: True if x['metadata'].get('tags') and 'parameters' in x['metadata'].get('tags') else False)
+        cell_combiner(book,condition=(lambda x: True if x['metadata'].get('tags') and 'parameters' in x['metadata'].get('tags') else False))
         executed_nb = pm.execute.execute_notebook(book, output_nb, parameters=parameters)
-
+    
     if os.path.isfile(template):
         with open(template, "r") as t:
             template = t.read()
@@ -115,13 +141,11 @@ def main():
     else:
         html_exporter = HTMLExporter(template_name="lab")
 
-    if config:
-        html_config = config.get('options')
-        if html_config:
-            html_exporter.__dict__['_trait_values'].update(html_config)
+    if options:
+        html_exporter.__dict__['_trait_values'].update(options)
 
     (body, resources) = html_exporter.from_notebook_node(
-        executed_nb, {"metadata": {"name": report_name }}
+        executed_nb, {"metadata": {"name": report_name}}
     )
 
     with open(f'{prefix}{report_name}.html', "w") as o:
