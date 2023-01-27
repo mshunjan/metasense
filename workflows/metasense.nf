@@ -196,23 +196,19 @@ workflow METASENSE {
     //
     // MODULE: MultiQC
     //
-    workflow_summary    = WorkflowMetasense.paramsSummaryMultiqc(workflow, summary_params)
-    ch_workflow_summary = Channel.value(workflow_summary)
+    ch_jpreport_files = Channel.empty()
+    ch_jpreport_files = ch_jpreport_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect())
+    ch_jpreport_files = ch_jpreport_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.yml.collect())
 
-    ch_jpreports_parameters = [:].withDefault {null}
-    ch_brac_file = BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect()
-    ch_sv_file = CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect()
-    ch_jpreports_parameters.putAll(['brac_file': ch_brac_file,'sv_file':ch_sv_file])    
-    
     if (params.qc) {
-        ch_jpreports_parameters = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
+        ch_jpreports_files = ch_jpreport_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
     }
 
     JUPYTER_REPORTS(
+        ch_jpreport_files.collect(),
         ch_jpreport_nbs.collect().ifEmpty([]),
         ch_jpreport_config.collect().ifEmpty([]),
-        ch_jpreport_template.collect().ifEmpty([]),
-        ch_jpreports_parameters
+        ch_jpreport_template.collect().ifEmpty([])
     )
 
 }

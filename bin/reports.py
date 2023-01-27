@@ -115,6 +115,7 @@ def main():
         order = config.get('order') if config.get('order') else order
         options = config.get('options') if config.get('options') else options
         report_name = config.get('report_name') if config.get('report_name') else report_name
+        parameters = config.get('parameters') if config.get('parameters') else parameters
 
     if args.output:
         if not os.path.exists(args.output):
@@ -129,9 +130,11 @@ def main():
         template = args.template
 
     book = book_generator(inp, order=order)
+    final_nb = book
     if parameters:
         cell_combiner(book,condition=(lambda x: True if x['metadata'].get('tags') and 'parameters' in x['metadata'].get('tags') else False))
-        executed_nb = pm.execute.execute_notebook(book, output_nb, parameters=parameters)
+        final_nb = pm.execute.execute_notebook(book, output_nb, parameters=parameters)
+        
     
     if os.path.isfile(template):
         with open(template, "r") as t:
@@ -145,7 +148,7 @@ def main():
         html_exporter.__dict__['_trait_values'].update(options)
 
     (body, resources) = html_exporter.from_notebook_node(
-        executed_nb, {"metadata": {"name": report_name}}
+        final_nb, {"metadata": {"name": report_name}}
     )
 
     with open(f'{prefix}{report_name}.html', "w") as o:

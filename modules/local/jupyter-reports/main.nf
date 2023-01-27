@@ -6,10 +6,10 @@ process JUPYTER_REPORTS {
         'mshunjan/jupyter-reports:latest' }"
 
     input:
+        path files
         path nbs
         path config
         path template
-        val parameters
 
     output:
     path "report.html"    , emit: report
