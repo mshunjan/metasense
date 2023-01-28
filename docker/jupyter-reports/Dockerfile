@@ -1,7 +1,7 @@
 FROM python:3.9-slim-bullseye as base 
 RUN apt-get update && apt-get install -y \
     curl \
-    procps
+    procps 
 
 FROM base as compiler 
 

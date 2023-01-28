@@ -1,0 +1,180 @@
+{%- extends 'lab/index.html.j2' -%}
+{%- block header -%}
+<!-- Favicon includes -->
+<link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink' xmlns:svgjs='http://svgjs.com/svgjs' width='800px' height='800px'%3E%3Csvg width='800px' height='800px' viewBox='0 0 50 50' data-name='Layer 1' id='SvgjsSvg1000' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cstyle%3E.cls-1%7Bfill:%23231f20;%7D.cls-2%7Bfill:%23ff8e5a;%7D.cls-3%7Bfill:%23ffba50;%7D.cls-4%7Bfill:%23ffffff;%7D%3C/style%3E%3C/defs%3E%3Ctitle%3E%3C/title%3E%3Cpath class='cls-1' d='M40.911,9.207H29.234V5a.5.5,0,0,0-.5-.5H5a.5.5,0,0,0-.5.5c0,.006,0,.011,0,.017L4.5,36.2a4.59,4.59,0,0,0,4.524,4.582.149.149,0,0,0,.018,0H9.06c.01,0,.019,0,.029,0s.019,0,.029,0h11.65V45a.5.5,0,0,0,.5.5H45a.5.5,0,0,0,.5-.5l0-31.2A4.6,4.6,0,0,0,40.911,9.207Z'%3E%3C/path%3E%3Cpath class='cls-2' d='M5.5,36.2l0-30.7H28.234V9.207H17.583a.462.462,0,0,0-.1.01c-.1-.007-.2-.01-.3-.01a4.6,4.6,0,0,0-4.59,4.591s.086,22.266.086,22.406a3.591,3.591,0,0,1-3.56,3.586H9.06A3.592,3.592,0,0,1,5.5,36.2Z'%3E%3C/path%3E%3Cpath class='cls-3' d='M11.918,39.79a4.567,4.567,0,0,0,1.76-3.586c0-.1-.086-22.41-.086-22.408a3.59,3.59,0,0,1,7.179,0l0,25.994Z'%3E%3C/path%3E%3Cpath class='cls-4' d='M44.5,44.5H21.768l0-30.7a4.585,4.585,0,0,0-1.733-3.589H40.911A3.593,3.593,0,0,1,44.5,13.8Z'%3E%3C/path%3E%3Cpath class='cls-1' d='M41.13,37.239H25.136a.5.5,0,0,0,0,1H41.13a.5.5,0,0,0,0-1Z'%3E%3C/path%3E%3Cpath class='cls-1' d='M41.13,31.692H25.136a.5.5,0,0,0,0,1H41.13a.5.5,0,0,0,0-1Z'%3E%3C/path%3E%3Cpath class='cls-1' d='M41.13,26.156H25.136a.5.5,0,0,0,0,1H41.13a.5.5,0,0,0,0-1Z'%3E%3C/path%3E%3Cpath class='cls-1' d='M41.13,20.653H25.136a.5.5,0,0,0,0,1H41.13a.5.5,0,0,0,0-1Z'%3E%3C/path%3E%3Cpath class='cls-1' d='M41.13,15.106H25.136a.5.5,0,0,0,0,1H41.13a.5.5,0,0,0,0-1Z'%3E%3C/path%3E%3C/svg%3E%3Cstyle%3E@media (prefers-color-scheme: light) %7B :root %7B filter: none; %7D %7D%0A@media (prefers-color-scheme: dark) %7B :root %7B filter: none; %7D %7D%0A%3C/style%3E%3C/svg%3E">
+{{super () }}
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
+
+    .banner {
+        font-size: 100px;
+        margin-block: 0;
+    }
+
+    .main-content {
+        margin-left: 0px;
+        padding-left: 40px;
+        height: 100%;
+        transition: margin-left 0.5s cubic-bezier(.25, .8, .25, 1);
+    }
+
+    .main-content.open {
+        margin-left: 250px;
+    }
+
+    .sidenav {
+        height: 100%;
+        width: 250px;
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        left: -252px;
+        background-color: #fbfbfb;
+        overflow-x: hidden;
+        transition: all 0.5s cubic-bezier(.25, .8, .25, 1);
+        border: 0.5px solid #c8c8c8;
+        box-shadow: 0.5px 0px #e1e1e1;
+    }
+
+    .sidenav-logo {
+        padding: 20px;
+        border-bottom: 1px solid #c8c8c8;
+    }
+
+    .sidenav-logo:hover {
+        transition-duration: 0.2s;
+        background-color: rgb(207, 216, 240);
+    }
+
+    .sidenav a:hover {
+        transition-duration: 0.2s;
+        background-color: rgb(207, 216, 240);
+    }
+
+    .sidenav a {
+        border-bottom: 1px solid #c8c8c8;
+    }
+
+    a.H1 {
+        display: block;
+        color: #333;
+        padding: 10px 0px 10px 20px;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 400;
+    }
+
+    a.H2 {
+        display: block;
+        color: #333;
+        padding: 10px 0px 10px 20px;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 10px 0px 10px 40px;
+        font-weight: 300;
+    }
+
+    .sidenav.open {
+        transform: translateX(250px);
+    }
+
+    .navbar {
+        position: fixed;
+        top: 50%;
+        left: 0px;
+        z-index: 1;
+    }
+
+    .sidenav-button {
+        background-color: #fbfbfb;
+        border: none;
+        color: rgb(0, 0, 0);
+        cursor: pointer;
+        padding: 10px;
+        font-size: 18px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        transition: all 0.5s cubic-bezier(.25, .8, .25, 1);
+    }
+
+    .sidenav-button:hover {
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(51, 92, 238, 0.23);
+    }
+
+    .sidenav-button.open {
+        transform: translateX(250px);
+    }
+</style>
+
+{%- endblock header -%}
+
+{%- block body -%}
+<div id="sidenav" class="sidenav">
+    <a href="#" class=H1>
+        <h1>Sections</h1>
+    </a>
+</div>
+
+<div class="navbar">
+    <button class="sidenav-button" onclick="toggleNav()">&#9776;</button>
+</div>
+
+<div class="main-content">
+    {% set nb_title = nb.metadata.get('title', resources['metadata']['name']) | escape_html_keep_quotes %}
+    <h1 class="banner">{{nb_title}}</h1>
+    {{super()}}
+</div>
+<script>
+    window.addEventListener("load", (event) => {
+        populateNav()
+        toggleNav()
+    })
+
+    function populateNav() {
+        const nav_links = []
+        const headings = document.querySelectorAll('.jp-Cell h1, .jp-Cell h2, .jp-Cell h3, .jp-Cell h4, .jp-Cell h5, .jp-Cell h6');
+        const sidenav = document.getElementById("sidenav")
+        for (let i = 0; i < headings.length; i++) {
+            const heading = headings[i];
+            let anchor = document.createElement('a')
+
+            const line = document.createElement("hr")
+
+            if (heading.tagName === 'H1') {
+                heading.insertAdjacentElement('afterend', line)
+            }
+
+            anchor.setAttribute('href', '#' + heading.id)
+            anchor.setAttribute('id', heading.tagName)
+            const classAttributes = 'nav-link ' + heading.tagName
+            anchor.setAttribute('class', classAttributes)
+            anchor.innerHTML = heading.id
+            sidenav.appendChild(anchor)
+        }
+    }
+
+    function toggleNav() {
+        var sideNav = document.querySelector('.sidenav');
+        var mainContent = document.querySelector('.main-content');
+        var button = document.querySelector('.sidenav-button');
+        sideNav.classList.toggle('open');
+        mainContent.classList.toggle('open');
+        button.classList.toggle('open');
+    }
+
+    function scrollToSection(event) {
+        var sectionId = event.target.getAttribute("href").substring(1);
+        var section = document.getElementById(sectionId);
+        section.scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Add event listeners to the side navigation links
+    var navLinks = document.getElementsByClassName("nav-link");
+    for (var i = 0; i < navLinks.length; i++) {
+        navLinks[i].addEventListener("click", scrollToSection);
+    }
+
+</script>
+{%- endblock body -%}

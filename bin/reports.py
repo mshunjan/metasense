@@ -73,17 +73,17 @@ def book_generator(inp, order=None):
 
     return working_nb
 
-def main():
-    report_name = "report"
-    prefix = "./"
-    config = None
-    order = None
-    options = None
-    output_nb = None
-    parameters = []
-    template = 'lab'
-    inp = None
+def configure(init, key, d):
+    if d:
+        v = d.get(key)
+        if v:
+            return v
+        else:
+            return init
+    else:
+        return init
 
+def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -104,6 +104,23 @@ def main():
 
     args = parser.parse_args()
 
+    config = None    
+    if args.config:
+        with open(args.config, 'r') as f:
+            config = yaml.safe_load(f)
+    
+    order = configure(None, 'order', config)
+    options = configure(None, 'options', config)
+    parameters = configure([], 'parameters', config)
+    report_config = configure(None, 'report', config)
+    name = configure('report', 'fileName', report_config)
+    title = configure('Report', 'title', report_config)
+
+    prefix = "./"
+    output_nb = None
+    template = 'lab'
+    inp = None
+    
     if args.input:
         inp = args.input
     else:
@@ -112,10 +129,14 @@ def main():
     if args.config:
         with open(args.config, 'r') as f:
             config = yaml.safe_load(f)
-        order = config.get('order') if config.get('order') else order
-        options = config.get('options') if config.get('options') else options
-        report_name = config.get('report_name') if config.get('report_name') else report_name
-        parameters = config.get('parameters') if config.get('parameters') else parameters
+        order = configure(order, 'order', config)
+        options = configure(options, 'options', config)
+        parameters = configure(parameters, 'parameters', config)
+        report_config = configure(report_config, 'report', config)
+
+        if report_config:
+            title = configure(title, 'title', report_config)
+            name = configure(name, 'name', report_config)
 
     if args.output:
         if not os.path.exists(args.output):
@@ -123,7 +144,7 @@ def main():
         prefix = args.output
         if prefix[-1] != '/':
             prefix = prefix + '/'
-        output_nb = prefix + report_name + ".ipynb"
+        output_nb = prefix + name + ".ipynb"
     if args.parameters:
         parameters = args.parameters
     if args.template:
@@ -148,10 +169,10 @@ def main():
         html_exporter.__dict__['_trait_values'].update(options)
 
     (body, resources) = html_exporter.from_notebook_node(
-        final_nb, {"metadata": {"name": report_name}}
+        final_nb, {"metadata": {"name": title}}
     )
 
-    with open(f'{prefix}{report_name}.html', "w") as o:
+    with open(f'{prefix}{name}.html', "w") as o:
         o.write(body)
 
 

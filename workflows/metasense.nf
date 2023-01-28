@@ -26,7 +26,7 @@ if (params.metadata) {ch_metadata = file(params.metadata)} else {ch_metadata = '
 
 ch_jpreport_nbs = Channel.fromPath("$projectDir/assets/notebooks", checkIfExists: true)
 ch_jpreport_config = Channel.fromPath("$projectDir/assets/jupyter_reports_config.yml", checkIfExists: true)
-ch_jpreport_template = params.jpreport_template ? Channel.fromPath( params.jpreport_template, checkIfExists: true ) : Channel.empty()
+ch_jpreport_template = params.jpreport_template ? Channel.fromPath( params.jpreport_template, checkIfExists: true ) : Channel.fromPath("$projectDir/assets/jupyter_reports.html", checkIfExists: true)
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,8 +66,6 @@ include { SEQTK_SAMPLE                  } from '../modules/nf-core/seqtk/sample/
 */
 
 def jpreports = []
-
-import nextflow.io.ValueObject
 
 workflow METASENSE {
 
@@ -187,14 +185,14 @@ workflow METASENSE {
     )
 
     ch_versions = ch_versions.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.versions)
-
+  
     // Dump softwares
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
     )
 
     //
-    // MODULE: MultiQC
+    // MODULE: Jupyter Reports
     //
     ch_jpreport_files = Channel.empty()
     ch_jpreport_files = ch_jpreport_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect())
@@ -218,7 +216,6 @@ workflow METASENSE {
     COMPLETION EMAIL AND SUMMARY
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
 workflow.onComplete {
     if (params.email || params.email_on_fail) {
         NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)

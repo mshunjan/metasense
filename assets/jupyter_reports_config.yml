@@ -1,6 +1,10 @@
+report: 
+  fileName: 'report'
+  title: 'MetaSense Report' 
+
 order: 
   report.ipynb: 1
-  metadata.ipynb: 2
+  versions.ipynb: 2
 
 options:
   exclude_input: True
