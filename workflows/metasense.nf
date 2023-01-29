@@ -65,8 +65,6 @@ include { SEQTK_SAMPLE                  } from '../modules/nf-core/seqtk/sample/
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-def jpreports = []
-
 workflow METASENSE {
 
     ch_versions = Channel.empty()
@@ -208,7 +206,6 @@ workflow METASENSE {
         ch_jpreport_config.collect().ifEmpty([]),
         ch_jpreport_template.collect().ifEmpty([])
     )
-
 }
 
 /*
