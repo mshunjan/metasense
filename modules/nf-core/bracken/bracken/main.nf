@@ -26,7 +26,7 @@ process BRACKEN_BRACKEN {
     def read_length = meta.read_length ?: 150
     def args = task.ext.args ?: "-l ${taxonomic_level} -t ${threshold} -r ${read_length}"
     def prefix = task.ext.prefix ?: "${meta.id}"
-    bracken_report = "${prefix}_${taxonomic_level}.tsv"
+    bracken_report = "${prefix}.tsv"
     // WARN: Version information not provided by tool on CLI.
     // Please update version string below when bumping container versions.
     def VERSION = '2.7'
