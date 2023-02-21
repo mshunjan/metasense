@@ -180,10 +180,9 @@ workflow METASENSE {
     // MODULE: Combine Bracken Outputs
     // 
 
-    ch_filtered_bracken_files = BRACKEN_FILTER.out.reports.collect{it[1]}
-
     BRACKEN_COMBINEBRACKENOUTPUTS (
-        ch_filtered_bracken_files
+       BRACKEN_BRACKEN.out.reports.collect{it[1]},
+       BRACKEN_FILTER.out.reports.collect{it[1]}
     )
 
     ch_versions = ch_versions.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.versions)
@@ -192,7 +191,7 @@ workflow METASENSE {
     // Module: Plot bracken data 
     // 
     BRACKEN_PLOT (
-        BRACKEN_COMBINEBRACKENOUTPUTS.out.result
+        BRACKEN_COMBINEBRACKENOUTPUTS.out.filtered
     )
     ch_versions = ch_versions.mix(BRACKEN_PLOT.out.versions)
 
@@ -215,7 +214,7 @@ workflow METASENSE {
     // ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
     // ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.result.collect())
+    ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_COMBINEBRACKENOUTPUTS.out.filtered.collect())
     ch_multiqc_files = ch_multiqc_files.mix(BRACKEN_PLOT.out.graph.collect())
 
     if (params.qc) {

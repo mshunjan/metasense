@@ -6,10 +6,12 @@ process BRACKEN_COMBINEBRACKENOUTPUTS {
         'mshunjan/bracken-plot:latest' }"
 
     input:
-    path input
+    path unfiltered
+    path filtered
 
     output:
-    path "*.tsv"       , emit: result
+    path "bracken_combined.tsv"       , emit: unfiltered
+    path "bracken_combined.filtered.tsv"       , emit: filtered
     path "versions.yml", emit: versions
 
     when:
@@ -17,15 +19,19 @@ process BRACKEN_COMBINEBRACKENOUTPUTS {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "bracken_combined.tsv"
     // WARN: Version information not provided by tool on CLI.
     // Please update version string below when bumping container versions.
     def VERSION = '2.7'
     """
     combine_bracken_outputs.py \\
         $args \\
-        --files ${input} \\
-        -o ${prefix}
+        --files ${unfiltered} \\
+        -o bracken_combined.tsv
+
+    combine_bracken_outputs.py \\
+        $args \\
+        --files ${filtered} \\
+        -o bracken_combined.filtered.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
