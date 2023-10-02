@@ -76,19 +76,16 @@ workflow METASENSE {
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
-    if (params.input.startsWith('s3://')) {
-        ch_samplesheet = Channel.fromPath("${params.input}/*", checkIfExists: true)
-            .ifEmpty { error("No files found at ${params.input}") }
+    if (file(params.input).isDirectory()) { 
+        ch_dir = file(params.input)
+        SAMPLESHEET_GENERATE (
+            ch_dir
+        )
+        ch_samplesheet = SAMPLESHEET_GENERATE.out.csv
         ch_versions = ch_versions.mix(SAMPLESHEET_GENERATE.out.versions)
-        
-    } else {
-        // Keep your existing logic for local paths
-        if (file(params.input).isDirectory()) {
-            ch_samplesheet = Channel.fromPath("${params.input}/*", checkIfExists: true)
-        } else {
-            ch_samplesheet = Channel.fromPath(params.input, checkIfExists: true)
         }
-        ch_versions = ch_versions.mix(SAMPLESHEET_GENERATE.out.versions)
+    else {
+        ch_samplesheet = file(params.input) 
     }
 
 
