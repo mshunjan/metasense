@@ -1,6 +1,7 @@
 process BRACKEN_BRACKEN {
     tag "$meta.id"
     label 'process_low'
+    errorStrategy { task.exitStatus == 1 ? 'ignore' : 'terminate' }
 
     // WARN: Version information not provided by tool on CLI.
     // Please update version string below when bumping container versions.
